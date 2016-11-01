@@ -1,11 +1,19 @@
 import pygame
 import time
-from random import randint
+from random import randint,randrange
 
 black = (0,0,0)
 white = (255,255,255)
+
 sunset = (253, 72, 47)
+
 greenyellow = (184, 255, 0)
+brigthblue = (47, 228, 253)
+orange = (255, 113, 0)
+yellow = (255, 236, 0)
+purple = (252, 67, 255)
+
+colorChoices = [greenyellow,brigthblue,orange,yellow,purple]
 
 pygame.init()
 
@@ -21,14 +29,19 @@ clock = pygame.time.Clock()
 
 img = pygame.image.load('heli.jpg')
 
+def levels(count):
+    font = pygame.font.Font('freesansbold.ttf', 20)
+    text = font.render("Level: "+str(count), True, white)
+    surface.blit(text, [0,30])
+
 def score(count):
     font = pygame.font.Font('freesansbold.ttf', 20)
     text = font.render("Score: "+str(count), True, white)
     surface.blit(text, [0,0])
 
-def blocks(x_block, y_block, block_width, block_height, gap):
-    pygame.draw.rect(surface, white, [x_block,y_block,block_width,block_height])
-    pygame.draw.rect(surface, white, [x_block,y_block+block_height+gap,block_width,surfaceHeight])
+def blocks(x_block, y_block, block_width, block_height, gap, colorChoice):
+    pygame.draw.rect(surface, colorChoice, [x_block,y_block,block_width,block_height])
+    pygame.draw.rect(surface, colorChoice, [x_block,y_block+block_height+gap,block_width,surfaceHeight])
 
 def replay_or_quit():
     for event in pygame.event.get([pygame.KEYDOWN, pygame.KEYUP, pygame.QUIT]):
@@ -48,13 +61,19 @@ def makeTextObjs(text, font):
 
 def msgSurface(text):
     smallText = pygame.font.Font('freesansbold.ttf', 20)
-    largeText = pygame.font.Font('freesansbold.ttf', 150)
+    largeText = pygame.font.Font('freesansbold.ttf', 110)
 
     titleTextSurf, titleTextRect = makeTextObjs(text, largeText)
     titleTextRect.center = surfaceWidth / 2, surfaceHeight / 2
     surface.blit(titleTextSurf, titleTextRect)
 
-    typTextSurf, typTextRect = makeTextObjs('Press any key to continue', smallText)
+    typTextSurf, typTextRect = makeTextObjs("""Press any key to continue
+High Scores:
+            1. Ezequiel - Level 156
+            2. Bill Gates - Level 154
+            3. Robert DeNiro - Level 5
+
+            All credits @EzequielO""", smallText)
     typTextRect.center = surfaceWidth / 2, ((surfaceHeight / 2) + 100)
     surface.blit(typTextSurf, typTextRect)
 
@@ -68,7 +87,8 @@ def msgSurface(text):
         
 
 def gameOver():
-    msgSurface('Moristeee')
+    msgSurface('Game Over')
+    
 
 def helicopter(x, y, image):
     surface.blit(img, (x,y))
@@ -88,6 +108,8 @@ def main():
     block_move = 4
 
     current_score = 0
+    level = 1
+    blockColor = colorChoices[randrange(0,len(colorChoices))]
     
     game_over = False
 
@@ -108,9 +130,11 @@ def main():
 
         surface.fill(black)
         helicopter(x, y, img)
-        score(current_score)
+        
 
-        blocks(x_block, y_block, block_width, block_height, gap)
+        blocks(x_block, y_block, block_width, block_height, gap, blockColor)
+        score(current_score)
+        levels(level)
         x_block -= block_move
 
         if y > surfaceHeight-40 or y < 0:
@@ -119,6 +143,7 @@ def main():
         if x_block < (-1*block_width):
             x_block = surfaceWidth
             block_height = randint(0, surfaceHeight/2)
+            blockColor = colorChoices[randrange(0,len(colorChoices))]
 
         if x + imageWidth > x_block:
             if x < x_block + block_width:
@@ -137,8 +162,18 @@ def main():
                 if x < block_width + x_block:
                     gameOver()
 
-        if x < x_block and x > x_block - block_move:
+        if x_block < (x - block_width) < x_block + block_move:
             current_score +=1
+
+        if 3 <= current_score < 5:
+            block_move = 6
+            gap = imageHeight * 2.6
+            level = 2
+
+        if 5 <= current_score < 8:
+            block_move = 8
+            gap = imageHeight * 2.3
+            level = 3
 
         pygame.display.update()
         clock.tick(60)
